@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPI情欲占有测试 - 专业心理测评</title>
+    <style>
+        * {margin: 0;padding: 0;box-sizing: border-box;font-family: "微软雅黑", sans-serif;}
+        body {background: #fef7fb;min-height: 100vh;padding: 20px;}
+        /* 玫红色主色系配置 */
+        :root {--main: #E6007E;--main-light: #F8B3D0;--main-dark: #B80063;--bg: #fff;--text: #333;--gray: #999;}
+        .test-container {max-width: 750px;margin: 0 auto;background: var(--bg);border-radius: 20px;padding: 30px;box-shadow: 0 8px 30px rgba(230,0,126,0.15);border: 1px solid var(--main-light);}
+        .test-title {text-align: center;color: var(--main);font-size: 24px;font-weight: 700;margin-bottom: 8px;}
+        .test-subtitle {text-align: center;color: var(--gray);font-size: 14px;margin-bottom: 30px;}
+        /* 题目样式 */
+        .question-box {margin-bottom: 25px;padding-bottom: 25px;border-bottom: 1px dashed var(--main-light);}
+        .question-text {font-size: 16px;color: var(--text);line-height: 1.6;margin-bottom: 15px;font-weight: 500;}
+        .option-list {display: flex;flex-wrap: wrap;gap: 10px;justify-content: space-between;}
+        .option-item {width: 48%;padding: 12px 0;text-align: center;border-radius: 10px;border: 2px solid var(--main-light);color: var(--main);cursor: pointer;transition: all 0.3s;font-size: 14px;}
+        .option-item.active {background: var(--main);color: #fff;border-color: var(--main);}
+        /* 按钮样式 */
+        .btn-group {display: flex;gap: 15px;margin-top: 20px;}
+        .btn {flex: 1;padding: 15px 0;border-radius: 12px;border: none;font-size: 16px;font-weight: 600;cursor: pointer;transition: all 0.3s;}
+        .btn-next {background: var(--main);color: #fff;}
+        .btn-next:hover {background: var(--main-dark);}
+        .btn-reset {background: #fff;color: var(--main);border: 2px solid var(--main-light);}
+        /* 结果页样式 */
+        .result-page {display: none;}
+        .result-score {text-align: center;margin: 20px 0;}
+        .score-num {font-size: 48px;color: var(--main);font-weight: 700;}
+        .score-level {font-size: 20px;color: var(--main-dark);font-weight: 600;margin-top: 8px;}
+        .dimension-box {margin: 30px 0;padding: 20px;border-radius: 15px;background: rgba(230,0,126,0.05);}
+        .dimension-title {font-size: 18px;color: var(--main);font-weight: 700;margin-bottom: 15px;border-left: 4px solid var(--main);padding-left: 10px;}
+        .dimension-item {display: flex;justify-content: space-between;align-items: center;padding: 10px 0;border-bottom: 1px solid var(--main-light);font-size: 15px;}
+        .dimension-name {color: var(--text);font-weight: 500;}
+        .dimension-score {color: var(--main);font-weight: 700;}
+        /* 分析&术语样式 */
+        .analysis-box {margin: 25px 0;line-height: 1.8;font-size: 15px;color: var(--text);}
+        .analysis-title {font-size: 17px;color: var(--main);font-weight: 700;margin-bottom: 12px;}
+        .term-box {margin-top: 20px;padding: 15px;border-radius: 10px;background: #fdf2f7;}
+        .term-text {font-size: 14px;color: var(--main-dark);line-height: 1.7;}
+        .term-text span {font-weight: 700;color: var(--main);}
+        /* 适配手机 */
+        @media (max-width: 500px) {
+            .test-container {padding: 20px;}
+            .test-title {font-size: 20px;}
+            .option-item {width: 100%;}
+            .btn-group {flex-direction: column;}
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <!-- 测试题目页 -->
+        <div class="question-page">
+            <h1 class="test-title">RPI情欲占有测试</h1>
+            <p class="test-subtitle">专业测评｜从4大维度解析你的情欲占有特质</p>
+            <div id="question-content"></div>
+            <div class="btn-group">
+                <button class="btn btn-reset" onclick="resetAnswer()">重新选择</button>
+                <button class="btn btn-next" onclick="nextQuestion()">下一步</button>
+            </div>
+        </div>
+
+        <!-- 测试结果页 -->
+        <div class="result-page" id="result-page">
+            <h1 class="test-title">你的RPI情欲占有测试报告</h1>
+            <div class="result-score">
+                <div class="score-num" id="total-score">0</div>
+                <div class="score-level" id="score-level">——</div>
+            </div>
+
+            <!-- 四维得分 -->
+            <div class="dimension-box">
+                <h3 class="dimension-title">✅ 四大核心维度得分</h3>
+                <div class="dimension-item">
+                    <span class="dimension-name">控制欲望</span>
+                    <span class="dimension-score" id="score-control">0</span>
+                </div>
+                <div class="dimension-item">
+                    <span class="dimension-name">嫉妒强度</span>
+                    <span class="dimension-score" id="score-jealousy">0</span>
+                </div>
+                <div class="dimension-item">
+                    <span class="dimension-name">关系不安全感</span>
+                    <span class="dimension-score" id="score-insecurity">0</span>
+                </div>
+                <div class="dimension-item">
+                    <span class="dimension-name">情感依赖</span>
+                    <span class="dimension-score" id="score-dependence">0</span>
+                </div>
+            </div>
+
+            <!-- 专业分析 -->
+            <div class="analysis-box">
+                <h3 class="analysis-title">📌 专业结果深度解析</h3>
+                <div id="analysis-text"></div>
+            </div>
+
+            <!-- 术语解释 -->
+            <div class="term-box">
+                <p class="term-text"><span>【术语释义】</span>｜控制欲望：对亲密关系中对方行为、社交、决策的掌控诉求程度；嫉妒强度：因伴侣与他人建立联结产生的负面情绪浓烈度；关系不安全感：对亲密关系稳定性、忠诚度的怀疑与担忧程度；情感依赖：在情感、情绪、生活层面对伴侣的依附程度。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 测试题库（18道专业试题，对应四大维度，每题1-5分）
+        const questions = [
+            {text: "1. 当伴侣与异性朋友单独聚会时，你会不由自主地反复追问细节，甚至要求对方实时报备动态", dim: ["jealousy","insecurity"]},
+            {text: "2. 你希望伴侣的社交圈、兴趣爱好都能以你为中心，若对方有你不喜欢的社交，会试图让其放弃", dim: ["control","dependence"]},
+            {text: "3. 一旦伴侣没有及时回复消息/接电话，你会立刻产生“对方不在乎自己”的负面想法", dim: ["insecurity","dependence"]},
+            {text: "4. 你会在意伴侣的手机密码、社交软件好友列表，甚至会下意识查看对方的聊天记录", dim: ["control","jealousy"]},
+            {text: "5. 若伴侣夸赞他人的优点，你会感到不悦，甚至觉得对方是在暗示自己不够好", dim: ["jealousy","insecurity"]},
+            {text: "6. 你认为亲密关系中，双方应完全坦诚无保留，对方的所有想法和计划都必须让你知晓", dim: ["control","insecurity"]},
+            {text: "7. 当伴侣表现出独立的想法或行为时，你会感到不安，害怕对方脱离自己的掌控", dim: ["control","dependence"]},
+            {text: "8. 看到伴侣与他人有肢体接触（如拥抱、牵手），哪怕是亲友，也会产生强烈的不适感", dim: ["jealousy","control"]},
+            {text: "9. 你会习惯性依赖伴侣的情绪反馈，对方的喜怒哀乐会直接主导你的心情", dim: ["dependence","insecurity"]},
+            {text: "10. 你会试图干预伴侣的职业选择、消费习惯，希望对方的人生规划里处处有你的参与", dim: ["control","dependence"]},
+            {text: "11. 若伴侣提起前任，你会刨根问底，且长时间无法释怀，甚至会拿自己与前任对比", dim: ["jealousy","insecurity"]},
+            {text: "12. 你无法接受伴侣拥有完全属于自己的私人空间，认为“相爱就不该有秘密”", dim: ["control","insecurity"]},
+            {text: "13. 当伴侣暂时离开你的身边（如出差、旅游），你会频繁联系，内心充满空虚与焦虑", dim: ["dependence","insecurity"]},
+            {text: "14. 若伴侣违背了你的意愿做事，你会感到愤怒，甚至会用冷战、争吵的方式让对方妥协", dim: ["control","jealousy"]},
+            {text: "15. 你会担心伴侣被他人吸引而离开自己，这种担忧会时常出现在你的脑海中", dim: ["insecurity","jealousy"]},
+            {text: "16. 你希望伴侣能时刻表达对你的爱意，若对方表现平淡，你会觉得对方的感情变淡了", dim: ["dependence","insecurity"]},
+            {text: "17. 你会限制伴侣与异性的交往，哪怕是正常的工作、朋友往来，也会心生不满", dim: ["control","jealousy"]},
+            {text: "18. 失去这段关系对你而言是无法承受的，你愿意为了留住伴侣做出很多妥协甚至改变自己", dim: ["dependence","insecurity"]}
+        ];
+        // 评分选项
+        const options = [
+            {text: "完全不符合", score: 1},
+            {text: "基本不符合", score: 2},
+            {text: "中立态度", score: 3},
+            {text: "基本符合", score: 4},
+            {text: "完全符合", score: 5}
+        ];
+
+        let currentQ = 0; // 当前题目索引
+        let selectedScore = 0; // 当前题选中分数
+        let scores = {control:0, jealousy:0, insecurity:0, dependence:0}; // 四维得分
+
+        // 初始化第一题
+        initQuestion();
+        function initQuestion() {
+            if(currentQ < questions.length) {
+                const q = questions[currentQ];
+                let html = `<div class="question-box"><div class="question-text">${q.text}</div><div class="option-list">`;
+                options.forEach(opt => {
+                    html += `<div class="option-item" onclick="selectOption(${opt.score})">${opt.text}</div>`;
+                });
+                html += `</div></div>`;
+                document.getElementById("question-content").innerHTML = html;
+            } else {
+                showResult(); // 完成答题，展示结果
+            }
+        }
+
+        // 选中选项
+        function selectOption(score) {
+            selectedScore = score;
+            document.querySelectorAll(".option-item").forEach(item => item.classList.remove("active"));
+            event.target.classList.add("active");
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if(selectedScore === 0) {alert("请选择一个答案后再继续");return;}
+            // 累加维度得分
+            const dims = questions[currentQ].dim;
+            dims.forEach(d => scores[d] += selectedScore);
+            selectedScore = 0;
+            currentQ++;
+            initQuestion();
+        }
+
+        // 重新选择
+        function resetAnswer() {
+            selectedScore = 0;
+            document.querySelectorAll(".option-item").forEach(item => item.classList.remove("active"));
+        }
+
+        // 展示结果
+        function showResult() {
+            document.querySelector(".question-page").style.display = "none";
+            document.getElementById("result-page").style.display = "block";
+            // 计算总分
+            const total = scores.control + scores.jealousy + scores.insecurity + scores.dependence;
+            document.getElementById("total-score").innerText = total;
+            // 维度得分赋值
+            document.getElementById("score-control").innerText = scores.control + "分";
+            document.getElementById("score-jealousy").innerText = scores.jealousy + "分";
+            document.getElementById("score-insecurity").innerText = scores.insecurity + "分";
+            document.getElementById("score-dependence").innerText = scores.dependence + "分";
+            // 判定占有类型+专业分析
+            let level, analysis;
+            if(total <= 25) {
+                level = "低占有型｜情感独立，相处松弛";
+                analysis = "你的情欲占有特质极弱，在亲密关系中拥有极强的安全感与边界感，既不会过度掌控伴侣，也不会产生无端的嫉妒与依赖。你尊重彼此的私人空间，懂得“相爱是并肩而行，而非相互捆绑”，这种相处模式能让关系更长久稳定。但需注意：适度的占有欲是爱意的表达，过度松弛可能会让伴侣感受不到你的在乎。";
+            } else if(total <= 45) {
+                level = "中占有型｜爱意适度，张弛有度";
+                analysis = "你的情欲占有特质处于健康的中等水平，兼具对伴侣的在意与对关系的信任。你会在亲密关系中投入真挚的情感，有轻微的控制欲与依赖感，但不会逾越边界；面对潜在的情感威胁会产生正常的嫉妒，却能理性克制。这是最理想的情欲占有状态，既能让伴侣感受到你的爱意，又不会让对方感到压抑，是亲密关系的最佳平衡点。";
+            } else if(total <= 65) {
+                level = "中高占有型｜占有偏强，易生焦虑";
+                analysis = "你的情欲占有特质偏强，四大维度得分均处于中等偏上水平，核心表现为：对关系的不安全感较突出，容易因伴侣的细微行为产生嫉妒，同时有较强的控制欲与情感依赖。你对亲密关系的期待极高，渴望百分百的陪伴与忠诚，这种心态容易让你陷入焦虑，也可能给伴侣带来一定的压力。建议学会信任伴侣，减少过度干预，建立自身的独立价值，避免将所有情绪寄托在对方身上。";
+            } else {
+                level = "高占有型｜占有强烈，捆绑式相爱";
+                analysis = "你的情欲占有特质极强，控制欲望、嫉妒强度、关系不安全感、情感依赖四大维度均处于高分区间。你将亲密关系视为生活的全部，极度渴望掌控伴侣的一切，无法接受任何形式的“脱离掌控”，嫉妒心与不安全感会主导你的情感判断，同时对伴侣有着极致的依赖。这种状态极易让伴侣感到窒息，甚至会消耗彼此的感情，导致关系破裂。建议先建立自我认同，学会区分“爱”与“占有”，给关系留足呼吸的空间，必要时可通过专业心理疏导调整心态。";
+            }
+            document.getElementById("score-level").innerText = level;
+            document.getElementById("analysis-text").innerText = analysis;
+        }
+    </script>
+</body>
+</html>
